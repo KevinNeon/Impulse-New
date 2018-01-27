@@ -251,7 +251,6 @@ class CommandContext {
 			this.room = Rooms.global;
 		}
 
-		let giveExp = false;
 		let commandHandler = this.splitCommand(message);
 
 		if (typeof commandHandler === 'function') {
@@ -280,10 +279,8 @@ class CommandContext {
 					message = message.charAt(0) + message;
 				}
 			}
-
-			let lastMessageTime = this.user.lastMessageTime; // done this way because this.canTalk(message) reassigns the message time
 			message = this.canTalk(message);
-			if (message && Date.now() > (lastMessageTime + 5000)) giveExp = true;
+			if (this.room && message && !this.room.battle && !this.room.isPersonal && !this.room.isPrivate) this.user.lastPublicMessage = Date.now();
 		}
 
 		// Output the message
@@ -326,7 +323,6 @@ class CommandContext {
 			}
 		}
 
-		if (this.user.registered && giveExp) WL.addExp(this.user.userid, this.room, 1);
 		this.update();
 
 		return message;
@@ -631,14 +627,16 @@ class CommandContext {
 	sendModCommand(data) {
 		this.room.sendModsByUser(this.user, data);
 	}
+
+	privateModCommand() {
+		throw new Error(`this.privateModCommand has been renamed to this.privateModAction, which no longer writes to modlog.`);
+	}
 	/**
-	 * @param {string} data
-	 * @param {?string} logOnlyText
+	 * @param {string} msg
 	 */
-	privateModCommand(data, logOnlyText) {
-		this.room.sendModsByUser(this.user, data);
-		this.roomlog(data);
-		this.room.modlog('(' + this.room.id + ') ' + data + (logOnlyText || ""));
+	privateModAction(msg) {
+		this.room.sendMods(msg);
+		this.roomlog(msg);
 	}
 	/**
 	 * @param {string} action
@@ -653,10 +651,41 @@ class CommandContext {
 			let userid = user.getLastId();
 			buf += `[${userid}]`;
 			if (user.autoconfirmed && user.autoconfirmed !== userid) buf += ` ac:[${user.autoconfirmed}]`;
+			const alts = user.getAltUsers(false, true).map(user => user.getLastId()).join('], [');
+			if (alts.length) buf += ` alts:[${alts}]`;
 			buf += ` [${user.latestIp}]`;
 		}
 		buf += note;
+
 		Rooms.global.modlog(buf);
+		this.room.modlog(buf);
+	}
+	/**
+	 * @param {string} action
+	 * @param {string | User} user
+	 * @param {string} note
+	 * @param {object} options
+	 */
+	modlog(action, user, note, options = {}) {
+		let buf = `(${this.room.id}) ${action}: `;
+		if (user) {
+			if (typeof user === 'string') {
+				buf += `[${toId(user)}]`;
+			} else {
+				let userid = user.getLastId();
+				buf += `[${userid}]`;
+				if (!options.noalts) {
+					if (user.autoconfirmed && user.autoconfirmed !== userid) buf += ` ac:[${user.autoconfirmed}]`;
+					const alts = user.getAltUsers(false, true).map(user => user.getLastId()).join('], [');
+					if (alts.length) buf += ` alts:[${alts}]`;
+				}
+				if (!options.noip) buf += ` [${user.latestIp}]`;
+			}
+		}
+		buf += ` by ${this.user.userid}`;
+		if (note) buf += `: ${note}`;
+
+		this.room.modlog(buf);
 	}
 	/**
 	 * @param {string} data
@@ -665,19 +694,17 @@ class CommandContext {
 		if (this.pmTarget) return;
 		this.room.roomlog(data);
 	}
-	/**
-	 * @param {string} text
-	 * @param {?string} logOnlyText
-	 */
-	addModCommand(text, logOnlyText) {
-		this.room.addByUser(this.user, text);
-		this.room.modlog('(' + this.room.id + ') ' + text + (logOnlyText || ""));
+	logEntry() {
+		throw new Error(`this.logEntry has been renamed to this.roomlog.`);
+	}
+	addModCommand() {
+		throw new Error(`this.addModCommand has been renamed to this.addModAction, which no longer writes to modlog.`);
 	}
 	/**
-	 * @param {string} text
+	 * @param {string} msg
 	 */
-	logModCommand(text) {
-		this.room.modlog('(' + this.room.id + ') ' + text);
+	addModAction(msg) {
+		this.room.addByUser(this.user, msg);
 	}
 	update() {
 		if (this.room) this.room.update();
@@ -1065,11 +1092,25 @@ class CommandContext {
 	splitOne(target) {
 		let commaIndex = target.indexOf(',');
 		if (commaIndex < 0) {
-			return [target, ''];
+			return [target.trim(), ''];
 		}
-		return [target.substr(0, commaIndex), target.substr(commaIndex + 1).trim()];
+		return [target.substr(0, commaIndex).trim(), target.substr(commaIndex + 1).trim()];
 	}
 	/**
+	 * Given a message in the form "USERNAME" or "USERNAME, MORE", splits
+	 * it apart:
+	 *
+	 * - `this.targetUser` will be the User corresponding to USERNAME
+	 *   (or null, if not found)
+	 *
+	 * - `this.inputUsername` will be the text of USERNAME, unmodified
+	 *
+	 * - `this.targetUsername` will be the username, if found, or
+	 *   this.inputUsername otherwise
+	 *
+	 * - and the text of MORE will be returned (empty string, if the
+	 *   message has no comma)
+	 *
 	 * @param {string} target
 	 * @param {boolean} exactName
 	 */
@@ -1080,15 +1121,6 @@ class CommandContext {
 		this.inputUsername = name.trim();
 		this.targetUsername = this.targetUser ? this.targetUser.name : this.inputUsername;
 		return rest;
-	}
-	/**
-	 * @param {string} target
-	 */
-	splitTargetText(target) {
-		let [first, rest] = this.splitOne(target);
-
-		this.targetUsername = first.trim();
-		return rest.trim();
 	}
 }
 Chat.CommandContext = CommandContext;
@@ -1173,10 +1205,30 @@ Chat.uncacheTree = function (root) {
 	} while (uncache.length > 0);
 };
 
+/**
+ * @param {string} root
+ */
+Chat.uncacheDir = function (root) {
+	const absoluteRoot = FS(root).path;
+	for (const key in require.cache) {
+		if (key.startsWith(absoluteRoot)) {
+			delete require.cache[key];
+		}
+	}
+};
+
+/**
+ * @param {string} path
+ */
+Chat.uncache = function (path) {
+	const absolutePath = require.resolve(path);
+	delete require.cache[absolutePath];
+};
+
 Chat.loadPlugins = function () {
 	if (Chat.commands) return;
 
-	FS('package.json').readTextIfExists().then(data => {
+	FS('package.json').readIfExists().then(data => {
 		if (data) Chat.package = JSON.parse(data);
 	});
 
@@ -1276,6 +1328,36 @@ Chat.plural = function (num, plural = 's', singular = '') {
 		num = Number(num);
 	}
 	return (num !== 1 ? plural : singular);
+};
+
+/**
+ * Like string.split(delimiter), but only recognizes the first `limit`
+ * delimiters (default 1).
+ *
+ * `"1 2 3 4".split(" ", 2) => ["1", "2"]`
+ *
+ * `Chat.splitFirst("1 2 3 4", " ", 1) => ["1", "2 3 4"]`
+ *
+ * Returns an array of length exactly limit + 1.
+ *
+ * @param {string} str
+ * @param {string} delimiter
+ * @param {number} [limit]
+ */
+Chat.splitFirst = function (str, delimiter, limit = 1) {
+	let splitStr = /** @type {string[]} */ ([]);
+	while (splitStr.length < limit) {
+		let delimiterIndex = str.indexOf(delimiter);
+		if (delimiterIndex >= 0) {
+			splitStr.push(str.slice(0, delimiterIndex));
+			str = str.slice(delimiterIndex + delimiter.length);
+		} else {
+			splitStr.push(str);
+			str = '';
+		}
+	}
+	splitStr.push(str);
+	return splitStr;
 };
 
 /**

@@ -453,7 +453,7 @@ class GlobalRoom extends BasicRoom {
 		} else {
 			// Prevent there from being two possible hidden classes an instance
 			// of GlobalRoom can have.
-			this.ladderIpLog = new (require('stream')).Writable();
+			this.ladderIpLog = new (require('./lib/streams')).WriteStream({write() {}});
 		}
 
 		let lastBattle;
@@ -984,7 +984,7 @@ class BasicChatRoom extends BasicRoom {
 		/** @type {any} */
 		// TODO: strongly type surveys
 		this.survey = null;
-		
+
 		// room settings
 		this.desc = '';
 		this.modchat = (Config.chatmodchat || false);
@@ -997,6 +997,12 @@ class BasicChatRoom extends BasicRoom {
 		this.staffMessage = '';
 		this.autojoin = false;
 		this.staffAutojoin = /** @type {string | boolean} */ (false);
+
+		/** @type {?true | RegExp} */
+		this.banwordRegex = null;
+		/** @type {string[]} */
+		this.banwords = [];
+
 		this.chatRoomData = (options.isPersonal ? null : options);
 		Object.assign(this, options);
 		if (this.auth) Object.setPrototypeOf(this.auth, null);
@@ -1014,12 +1020,6 @@ class BasicChatRoom extends BasicRoom {
 
 		/** @type {Map<string, ChatRoom>?} */
 		this.subRooms = null;
-
-		/** @type {?true | RegExp} */
-		this.banwordRegex = null;
-
-		/** @type {string[]} */
-		this.banwords = [];
 
 		/** @type {'chat' | 'battle'} */
 		this.type = 'chat';
@@ -1485,9 +1485,6 @@ function getRoom(roomid) {
 
 /** @typedef {GlobalRoom | GameRoom | ChatRoom} Room */
 
-// workaround to stop TypeScript from checking room-battle
-let roomBattleLoc = './room-battle';
-
 let Rooms = Object.assign(getRoom, {
 	/**
 	 * The main roomid:Room table. Please do not hold a reference to a
@@ -1617,10 +1614,9 @@ let Rooms = Object.assign(getRoom, {
 
 	Roomlogs: Roomlogs,
 
-	RoomBattle: require(roomBattleLoc).RoomBattle,
-	RoomBattlePlayer: require(roomBattleLoc).RoomBattlePlayer,
-	SimulatorManager: require(roomBattleLoc).SimulatorManager,
-	SimulatorProcess: require(roomBattleLoc).SimulatorProcess,
+	RoomBattle: require('./room-battle').RoomBattle,
+	RoomBattlePlayer: require('./room-battle').RoomBattlePlayer,
+	PM: require('./room-battle').PM,
 });
 
 // initialize
