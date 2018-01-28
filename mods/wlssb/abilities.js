@@ -29,6 +29,41 @@ exports.BattleAbilities = {
 			this.setTerrain('');
 		},
 	},
+	// Prince Sky
+	ultraneuroforce: {
+		id: "ultraneuroforce",
+		name: "Ultra Neuroforce",
+		desc: "Adaptability + Neuroforce",
+		onModifyMove: function (move) {
+			move.stab = 2;
+		},
+		onModifyDamage: function (damage, source, target, move) {
+			if (move && move.typeMod > 0) {
+				this.chainModify([0x1333, 0x1000]);
+			}
+		},
+	},
+	conflictofinterest: {
+		id: "conflictofinterest",
+		name: "Conflict of Interest",
+		desc: "Uses Magnet Rise + Heatproof + Ghost & Dark type moves do 0.5x",
+		//Since levitate cant be coded in
+		onStart: function (pokemon) {
+			this.useMove('magnetrise', pokemon);
+		},
+		//HeatProof and filter other types
+		onBasePowerPriority: 7,
+		onSourceBasePower: function (basePower, attacker, defender, move) {
+			if (move.type === 'Fire' || move.type === 'Ghost' || move.type === 'Dark') {
+				return this.chainModify(0.5);
+			}
+		},
+		onDamage: function (damage, target, source, effect) {
+			if (effect && effect.id === 'brn') {
+				return damage / 2;
+			}
+		},
+	},
 	//Desokoro
 	wavecall: {
 		id: "wavecall",
@@ -51,11 +86,6 @@ exports.BattleAbilities = {
 					return this.chainModify(0.1);
 				}
 			},
-			onModifyPriority: function (priority, pokemon, target, move) {
-				if (move.id === 'tsunamicrash') {
-					return priority + 0.1;
-				}
-			},
 			onEnd: function (target) {
 				this.add('-end', target, 'Wave Call');
 			},
@@ -71,18 +101,6 @@ exports.BattleAbilities = {
 			if (pokemon.status || attacker.hp <= attacker.maxhp / 2) {
 				return this.chainModify(2);
 			}
-		},
-	},
-	//Tidal Wave Bot
-	loading: {
-		id: "loading",
-		name: "Loading...",
-		desc: "Boosts user's Attack by 4 stages, and Spe by 2 stages on switch in. Also uses Magnet Rise on entry.",
-		onStart: function (pokemon) {
-			this.add('-start', pokemon, 'typechange', 'Electric/Steel');
-			pokemon.types = ["Electric", "Steel"];
-			this.boost({atk: 4, spe: 2});
-			this.useMove('magnetrise', pokemon);
 		},
 	},
 	//Kraken Mare
@@ -185,7 +203,7 @@ exports.BattleAbilities = {
 			}
 		},
 	},
-	// Volco
+	// Arrays
 	shadowfist: {
 		shortDesc: "On switch-in, This pokemon is a ghost/fighting type.",
 		onStart: function (pokemon) {
@@ -201,13 +219,15 @@ exports.BattleAbilities = {
 		id: "shadowfist",
 		name: "Shadow Fist",
 	},
-	// MechSteelix
+	// iSteelX
 	sandbox: {
 		id: "sandbox",
 		name: "Sandbox",
 		desc: "Sets up Trick Room, Sandstorm & Gravity on switch in.",
 		onStart: function (pokemon) {
 			this.useMove('trickroom', pokemon);
+			this.useMove('reflect', pokemon);
+			this.useMove('lightscreen', pokemon);
 			this.useMove('gravity', pokemon);
 			this.setWeather('sandstorm');
 		},
@@ -216,7 +236,7 @@ exports.BattleAbilities = {
 	paradoxicalprowess: {
 		id: "paradoxicalprowess",
 		name: " Paradoxical Prowess",
-		desc: "Sets up Safeguard, Lucky Chant, has same effects of Magic Guard, has same effects of Sticky Hold, and has same effects of Oblivious",
+		desc: "Sets up Safeguard, Lucky Chant, has same effects of Magic Guard, has same effects of Sticky Hold, has same effects of Rock Solid, and has same effects of Oblivious",
 		//Magic Guard
 		onDamage: function (damage, target, source, effect) {
 			if (effect.effectType !== 'Move') {
@@ -253,14 +273,21 @@ exports.BattleAbilities = {
 				return null;
 			}
 		},
+		//Solid Rock
+		onSourceModifyDamage: function (damage, source, target, move) {
+			if (move.typeMod > 0) {
+				this.debug('Paradoxical Prowess neutralize');
+				return this.chainModify(0.75);
+			}
+		},
 	},
-	//Wavelength Prince
+	//Tsunami Prince
 	deathboost: {
 		id: "deathboost",
 		name: "Death Boost",
 		desc: "Simple + Puts foe to sleep on entry.",
 		onStart: function (pokemon) {
-			this.useMove('hypnosis', pokemon);
+			this.useMove('spore', pokemon);
 		},
 		onBoost: function (boost, target, source, effect) {
 			if (effect && effect.id === 'zpower') return;
@@ -273,9 +300,9 @@ exports.BattleAbilities = {
 	felinefury: {
 		id: "felinefury",
 		name: "Feline Fury",
-		desc: "+2 Attack on switch in + Scrappy",
+		desc: "+3 Attack on switch in.",
 		onStart: function (pokemon) {
-			this.boost({atk: 2});
+			this.boost({atk: 3});
 		},
 		onModifyMovePriority: -5,
 		onModifyMove: function (move) {
@@ -286,13 +313,13 @@ exports.BattleAbilities = {
 			}
 		},
 	},
-	//Mosmero
-	mosmicpower: {
-		id: "mosmicpower",
-		name: "Mosmic Power",
-		desc: "Boosts user's Special and Spe by 1 stages on switch in. Also uses Magnet Rise on entry.",
+	//Surge BoT (Old Mos Code)
+	hotpatch: {
+		id: "hotpatch",
+		name: "Hotpatch",
+		desc: "Boosts user's Special and Spe by 4 stages on switch in. Also uses Magnet Rise on entry.",
 		onStart: function (pokemon) {
-			this.boost({spa: 1, spe: 1});
+			this.boost({spa: 4, spe: 4});
 			this.useMove('magnetrise', pokemon);
 		},
 	},
@@ -303,14 +330,12 @@ exports.BattleAbilities = {
 		desc: "Doubles user's Attack and Speed if the opponent is a ghost or dark type.",
 		onModifyAtk: function (atk, pokemon) {
 			let target = pokemon.side.foe.active[0];
-			if (!target) return;
 			if (target.hasType('Ghost') || target.hasType('Dark')) {
 				return this.chainModify(2);
 			}
 		},
 		onModifySpe: function (spe, pokemon) {
 			let target = pokemon.side.foe.active[0];
-			if (!target) return;
 			if (target.hasType('Ghost') || target.hasType('Dark')) {
 				return this.chainModify(2);
 			}
