@@ -12,16 +12,40 @@ exports.BattleStatuses = {
 			this.add('c', '~Desokoro', 'You may have vanquished me today, but beware of the future. I shall not be gone long.');
 		},
 	},
-	tidalwavebot: {
+	princesky: {
+	    exists: true,
+	    onStart: function () {
+	        this.add('c', '~Prince Sky', 'Clap for your world famous 2 times SG Game champ and feel the poweR.');
+	    },
+	    onSwitchOut: function (pokemon) {
+	        this.add('c', '~Prince Sky', 'You are not worthy of challenging me.');
+	    },
+	    onFaint: function (pokemon) {
+	        this.add('c', '~Prince Sky', 'Every dog has his day and this is yours!');
+	    },
+	},
+	sparkyheliolisk: {
+	    exists: true,
+	    onStart: function () {
+	        this.add('c', '@SparkyHeliolisk', 'PR Added');
+	    },
+	    onSwitchOut: function (pokemon) {
+	        this.add('c', '@SparkyHeliolisk', 'PR Merged');
+	    },
+	    onFaint: function (pokemon) {
+	        this.add('c', '@SparkyHeliolisk', 'PR Deleted');
+	    },
+	},
+	anrinn: {
 		exists: true,
 		onStart: function () {
-			this.add('c', '*Tidal Wave Bot', 'Threat Detected: Must deploy the Ban Hammer');
+			this.add('c', '~Anrin N', 'Okie u are DEADDD');
 		},
 		onSwitchOut: function (pokemon) {
-			this.add('c', '*Tidal Wave Bot', 'Tidal Wave Bot powered down');
+			this.add('c', '~Anrin N', 'Take some rest till i return niglol');
 		},
 		onFaint: function (pokemon) {
-			this.add('c', '*Tidal Wave Bot', 'Emergency shutdown: Battery life depleted. Must recharge.');
+			this.add('c', '~Anrin N', 'NOOOOOOOOO U HACKERRRRRRRR.');
 		},
 	},
 	serperiorater: {
@@ -101,7 +125,8 @@ exports.BattleStatuses = {
 		onStart: function () {
 			this.add('c', '~Mystifi', '__I\'ll HM01 u faster then sanic m89__');
 		},
-		onSwitchOut: function (pokemon) {},
+		onSwitchOut: function (pokemon) {
+		},
 		onFaint: function (pokemon) {
 			this.add('c', '~Mystifi', '**WOW U HACKER I\'M REPORTING YOU TO ZAREL**');
 		},
@@ -116,6 +141,18 @@ exports.BattleStatuses = {
 		},
 		onFaint: function (pokemon) {
 			this.add('c', '~Kraken Mare', 'Even though I fall, I\'m sure I took a few down with me.');
+		},
+	},
+	ahelpfulrayquaza: {
+		exists: true,
+		onStart: function () {
+			this.add('c', '@A Helpful Rayquaza', 'Now you will die!.');
+		},
+		onSwitchOut: function (pokemon) {
+			this.add('c', '@A Helpful Rayquaza', 'Brb!');
+		},
+		onFaint: function (pokemon) {
+			this.add('c', '@A Helpful Rayquaza', 'What This can\'t be.. You Hacker!!.');
 		},
 	},
 	almightybronzong: {
@@ -135,6 +172,8 @@ exports.BattleStatuses = {
 		onStart: function () {
 			this.add('c', '&Opple', 'lol hi');
 		},
+		onSwitchOut: function (pokemon) {
+		},
 		onFaint: function (pokemon) {
 			this.add('c', '&Opple', 'I call hacks, fine. You got me, lol, I\'ll get you next time!');
 		},
@@ -153,9 +192,8 @@ exports.BattleStatuses = {
 	},
 	c733937123: {
 		exists: true,
-		onStart: function (pokemon) {
-			this.add('c', '@C733937 123', 'Hello opponent, Welcome to Wavelength, I, C733937 123, shall defeat you.....hopefully.');
-			this.useMove('psychup', pokemon);
+		onStart: function () {
+			this.add('c', '@C733937 123', 'Hello opponent, Welcome to Spacial Bros, I, C733937 123, shall defeat you.....hopefully.');
 		},
 		onSwitchOut: function (pokemon) {
 			this.add('c', '@C733937 123', '*laughs* Now you have to defeat a stronger ally....and have to still face me later where I can have a better chance at *distorted voice* KiLlInG YoU To wIn!!!');
@@ -175,44 +213,14 @@ exports.BattleStatuses = {
 		onFaint: function (pokemon) {
 			this.add('c', '+Auction', 'Ya know, I think I should\'ve gotten __burn everything__ as my ability ;_;');
 		},
-		onTryHit: function (target, source, move) {
-			if (target !== source && (move.type === 'Fire' || move.type === 'Water')) {
-				move.accuracy = true;
-				this.add('-immune', target, '[msg]', '[from] ability: Duality');
-				return null;
-			}
-		},
 	},
 	lycaniumz: {
 		exists: true,
 		onStart: function (pokemon) {
-			pokemon.types = ["Dark"];
-			this.add('c', '%Lycanium Z', '...Hi...');
-		},
-		onSwitchOut: function (pokemon) {
-			this.add('c', '%Lycanium Z', 'I gotta know when to stop, and its now.');
+			this.add('c', '%Lycanium Z', 'I dont play for fun i play to win');
 		},
 		onFaint: function (pokemon) {
-			this.add('c', '%Lycanium Z', 'Oh well, I tried.');
-		},
-	},
-	dread: {
-		// this is a volatile status
-		onStart: function (target, source, sourceEffect) {
-			this.add('-start', target, 'Dread');
-			this.add('-message', target.name + ' will die in 3 turns!');
-			this.effectData.time = 4;
-		},
-		onEnd: function (target) {
-			this.add('-end', target, 'Dread');
-			target.faint();
-		},
-		onResidual: function (pokemon) {
-			pokemon.volatiles.dread.time--;
-			if (!pokemon.volatiles.dread.time) {
-				pokemon.removeVolatile('Dread');
-				return;
-			}
+			this.add('c', '%Lycanium Z', 'bah i lost. hoeenhero pls buf <3');
 		},
 	},
 	celestialtater: {
@@ -236,16 +244,16 @@ exports.BattleStatuses = {
 			this.add('c', '*Stabby the Krabby', 'Impossible...');
 		},
 	},
-	volco: {
+	arrays: {
 		exists: true,
 		onStart: function () {
-			this.add('c', '@Volco', 'So you summoned me... while I\'m coding? Fine I\'ll battle... but I wont like it!');
+			this.add('c', '%Arrays', 'The code bracket is here! (Arrays)');
 		},
 		onSwitchOut: function (pokemon) {
-			this.add('c', '@Volco', 'I\'m taking a break to code some stuff while in class. #IDontLikeClass');
+			this.add('c', '%Arrays', 'I don\'t know how but i\'ve learned to run!');
 		},
 		onFaint: function (pokemon) {
-			this.add('c', '@Volco', 'Okay then. BACK TO CODING!');
+			this.add('c', '%Arrays', 'How does one beat up code? It\'s not able to be touched by physical means!');
 		},
 	},
 	mosmero: {
@@ -263,22 +271,22 @@ exports.BattleStatuses = {
 	cubsfan38: {
 		exists: true,
 		onStart: function () {
-			this.add('c', '&CubsFan38', 'Your favorite Rowlet has arrived to battle!');
+			this.add('c', '&CubsFan38', 'Your favorite penguin has arrived to battle!');
 		},
 		onSwitchOut: function (pokemon) {
 			this.add('c', '&CubsFan38', 'It\'s cold here, I\'m out.');
 		},
 	},
-	mechsteelix: {
+	isteelx: {
 		exists: true,
 		onStart: function () {
-			this.add('c', '&MechSteelix', 'Tell me, does a player such as yourself experience true fear?');
+			this.add('c', '&iSteelX', 'Tell me, does a player such as yourself experience true fear?');
 		},
 		onSwitchOut: function (pokemon) {
-			this.add('c', '&MechSteelix', 'What just happened?');
+			this.add('c', '&iSteelX', 'What just happened?');
 		},
 		onFaint: function (pokemon) {
-			this.add('c', '&MechSteelix', 'Forget my life.. always surrounded by bumbling baboons.');
+			this.add('c', '&iSteelX', 'Forget my life.. always surrounded by bumbling baboons.');
 		},
 	},
 	therittz: {
@@ -293,16 +301,16 @@ exports.BattleStatuses = {
 			this.add('c', '@TheRittz', '__fled from the scene__');
 		},
 	},
-	wavelengthprince: {
+	tsunamiprince: {
 		exists: true,
 		onStart: function () {
-			this.add('c', '~Wavelength Prince', 'You think I came for the battle, when it\'s really your soul I want.');
+			this.add('c', '~Tsunami Prince', 'You think I came for the battle, when it\'s really your soul I want.');
 		},
 		onSwitchOut: function (pokemon) {
-			this.add('c', '~Wavelength Prince', 'Don\'t worry, I\'ll be back. I will miss putting you in pain too much to not return.');
+			this.add('c', '~Tsunami Prince', 'Don\'t worry, I\'ll be back. I will miss putting you in pain too much to not return.');
 		},
 		onFaint: function (pokemon) {
-			this.add('c', '~Wavelength Prince', 'Death falls upon us all, however now is my time to die. You\'ll be happy to know that yours isn\'t far from now.');
+			this.add('c', '~Tsunami Prince', 'Death falls upon us all, however now is my time to die. You\'ll be happy to know that yours isn\'t far from now.');
 		},
 	},
 	xcmr: {
@@ -323,55 +331,6 @@ exports.BattleStatuses = {
 			if (effect && effect.effectType === 'Move') {
 				this.boost({spa: 1}, source);
 			}
-		},
-	},
-	bunnery5: {
-		exists: true,
-		onStart: function () {
-			this.add('c', '+bunnery5', 'LOL, you think you can win!');
-		},
-		onFaint: function (pokemon) {
-			this.add('c', '+bunnery5', 'One day, karma will get you back.');
-		},
-	},
-	priorityboost: {
-		onStart: function (target) {
-			this.add('-start', target, 'Priority Boost');
-			this.effectData.time = 8;
-		},
-		onEnd: function (target) {
-			this.add('-end', target, 'Priority Boost');
-		},
-		onModifyPriority: function (priority, pokemon, target, move) {
-			pokemon.volatiles.priorityboost.time--;
-			if (!pokemon.volatiles.priorityboost.time) {
-				pokemon.removeVolatile('priorityboost');
-				return;
-			}
-			if (move.id === 'cosmicpower' || move.id === 'storedpower') {
-				return priority + 1;
-			}
-		},
-	},
-	alfastorm: {
-		exists: true,
-		onStart: function () {
-			this.add('c', '+AlfaStorm', 'Hello, prepare to face my wrath!');
-		},
-		onFaint: function (pokemon) {
-			this.add('c', '+AlfaStorm', 'You\'ll regret doing this to me!');
-		},
-	},
-	SnorlaxTheRain: {
-		exists: true,
-		onStart: function () {
-			this.add('c', '+SnorlaxTheRain', 'Fat Snorlax has arrived!');
-		},
-		onSwitchOut: function (pokemon) {
-			this.add('c', '+SnorlaxTheRain', 'Be right back enemies! Snorsnor');
-		},
-		onFaint: function (pokemon) {
-			this.add('c', '+SnorlaxTheRain', 'Even though u have won, I will still sleep and regain my energy in order to fight against u once more!');
 		},
 	},
 };
